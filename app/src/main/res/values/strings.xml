@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">Rick &amp; Morty</string>
-    <string name="main_title">Personajes</string>
+    <string name="tab_characters">Personajes</string>
+    <string name="tab_variables">Variables</string>
+    <string name="tab_scope_functions">Scope functions</string>
+    <string name="variables_intro">Los tipos de variables y declaraciones de Kotlin. El resultado de cada tarjeta se calcula corriendo ese mismo código dentro de la app.</string>
+    <string name="scope_functions_intro">let, run, with, apply y also ejecutan un bloque sobre un objeto. Cambian en cómo lo nombras dentro del bloque (it o this) y en qué regresan.</string>
+    <string name="example_result">RESULTADO</string>
     <string name="character_species_gender">%1$s · %2$s</string>
     <string name="character_origin">Origen: %1$s</string>
     <string name="character_location">Última ubicación: %1$s</string>

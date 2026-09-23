@@ -1,15 +1,20 @@
 # android-sample
 
 App de ejemplo en Android que consume la [Rick and Morty API](https://rickandmortyapi.com/documentation)
-y sigue las reglas de arquitectura de abajo. Muestra la lista de personajes con scroll infinito,
-pull-to-refresh y caché offline en Room (si no hay red, se ve lo último guardado).
+y sigue las reglas de arquitectura de abajo. Tiene tres pestañas:
+
+1. **Personajes**: lista con scroll infinito, pull-to-refresh y caché offline en Room
+   (si no hay red, se ve lo último guardado).
+2. **Variables**: todos los tipos de variables de Kotlin (`val`, `var`, `const`, numéricos,
+   nullables, `lateinit`, `by lazy`, colecciones, etc.) con el resultado de correr cada ejemplo.
+3. **Scope functions**: `let`, `run`, `with`, `apply`, `also`, `takeIf`/`takeUnless` y una tabla resumen.
 
 ## Stack
 
 | Tema | Elección |
 |---|---|
 | Arquitectura | Clean Architecture en un módulo (`data`, `domain`, `presentation`, `di`) + MVVM |
-| Estado | `StateFlow` expuesto por `MainViewModel`, observado con `collectAsStateWithLifecycle` |
+| Estado | `CharactersViewModel` con `MutableLiveData` privado + `LiveData` público, observado con `observeAsState` |
 | Red | Retrofit + OkHttp + kotlinx.serialization |
 | Base de datos | Room (fuente única de verdad) |
 | DI | Hilt (`NetworkModule`, `DatabaseModule`, `RepositoryModule`) |
@@ -20,7 +25,7 @@ pull-to-refresh y caché offline en Room (si no hay red, se ve lo último guarda
 ## Flujo de datos
 
 ```
-MainScreen ──observa──▶ MainViewModel (StateFlow<MainUiState>)
+CharactersScreen ──observa──▶ CharactersViewModel (LiveData)
                               │
                               ▼
                   CharacterRepository (domain, interfaz)
@@ -31,7 +36,8 @@ MainScreen ──observa──▶ MainViewModel (StateFlow<MainUiState>)
                (Retrofit)               (Room)
 ```
 
-1. La UI observa `uiState`; nunca sabe de dónde viene el dato.
+1. La UI observa los `LiveData` del ViewModel; nunca sabe de dónde viene el dato.
+   El ViewModel cambia sus `MutableLiveData` privados y expone `LiveData` de solo lectura.
 2. El repositorio expone `observeCharacters()` desde Room.
 3. `fetchPage(n)` baja la página del API y la guarda en Room; Room emite y la UI se actualiza sola.
 
@@ -49,7 +55,9 @@ app/src/main/java/com/jcjiron/androidsample/
 │   └── repository/           # CharacterRepository
 ├── presentation/
 │   ├── theme/                # Color.kt, Type.kt, Shape.kt, Theme.kt
-│   └── main/                 # MainActivity, MainViewModel, MainUiState, MainScreen
+│   ├── main/                 # MainActivity, MainScreen (pestañas)
+│   ├── characters/           # CharactersViewModel (LiveData), CharactersScreen
+│   └── kotlinbasics/         # VariableExamples, ScopeFunctionExamples, KotlinExamplesScreen
 └── di/                       # NetworkModule, DatabaseModule, RepositoryModule
 ```
 
@@ -65,7 +73,7 @@ app/src/main/java/com/jcjiron/androidsample/
 `LightColors` y `DarkColors` viven en `presentation/theme/Color.kt`. En `Theme.kt` se elige el
 esquema en una línea; tipografía (`AppTypography`), shapes (`AppShapes`) y espaciados
 (`AppTheme.dimens`) salen del tema, así que ningún composable hardcodea estilos.
-`MainScreen.kt` trae previews en claro y oscuro.
+`CharactersScreen.kt` y `KotlinExamplesScreen.kt` traen previews en claro y oscuro.
 
 ## Correr
 
@@ -88,6 +96,7 @@ Así construyo aplicaciones Android. Una regla, una línea.
 - Las dependencias apuntan hacia adentro: `presentation` → `domain` ← `data`; `domain` no conoce Android.
 - MVVM con ViewModels de Jetpack; nada de MVP ni listeners actualizados a mano.
 - El ViewModel expone estado con `StateFlow` y la UI solo lo observa.
+  *(En este demo se usa `LiveData` / `MutableLiveData` para mostrar el patrón clásico.)*
 
 ### Datos
 

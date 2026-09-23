@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -46,4 +47,7 @@ object AppTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalDimens.current
+
+    val codeTextStyle: TextStyle
+        get() = CodeTextStyle
 }

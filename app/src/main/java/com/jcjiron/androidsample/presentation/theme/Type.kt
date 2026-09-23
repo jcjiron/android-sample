@@ -47,3 +47,11 @@ val AppTypography = Typography(
         letterSpacing = 0.5.sp,
     ),
 )
+
+/** Estilo para mostrar bloques de código en las secciones de Kotlin. */
+val CodeTextStyle = TextStyle(
+    fontFamily = FontFamily.Monospace,
+    fontWeight = FontWeight.Normal,
+    fontSize = 13.sp,
+    lineHeight = 19.sp,
+)
