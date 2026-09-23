@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Rick &amp; Morty</string>
+    <string name="main_title">Personajes</string>
+    <string name="character_species_gender">%1$s · %2$s</string>
+    <string name="character_origin">Origen: %1$s</string>
+    <string name="character_location">Última ubicación: %1$s</string>
+    <string name="status_alive">Vivo</string>
+    <string name="status_dead">Muerto</string>
+    <string name="status_unknown">Desconocido</string>
+    <string name="empty_state">No hay personajes todavía. Desliza hacia abajo para cargar.</string>
+    <string name="error_network">No se pudo conectar con el servidor. Mostrando datos guardados.</string>
+    <string name="retry">Reintentar</string>
+</resources>
