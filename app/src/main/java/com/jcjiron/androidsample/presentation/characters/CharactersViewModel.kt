@@ -6,9 +6,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.jcjiron.androidsample.R
-import com.jcjiron.androidsample.domain.model.Character
-import com.jcjiron.androidsample.domain.repository.CharacterRepository
+import com.jcjiron.androidsample.core.R
+import com.jcjiron.androidsample.core.domain.model.Character
+import com.jcjiron.androidsample.core.domain.repository.CharacterRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

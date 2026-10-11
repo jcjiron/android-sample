@@ -21,4 +21,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "AndroidSample"
-include(":app")
+include(":core")
+include(":app")      // MVVM — la que se sube a Play Store
+include(":app-mvi")  // mismo demo con MVI
+include(":app-mvp")  // mismo demo con MVP
