@@ -1,23 +1,56 @@
 # android-sample
 
-App de ejemplo en Android que consume la [Rick and Morty API](https://rickandmortyapi.com/documentation)
-y sigue las reglas de arquitectura de abajo. Tiene tres pestañas:
+Demo de Android que consume la [Rick and Morty API](https://rickandmortyapi.com/documentation).
+El mismo demo está hecho **tres veces, con tres arquitecturas distintas**, para comparar patrones
+resolviendo exactamente el mismo problema. Cada app tiene tres pestañas:
 
-1. **Personajes**: lista con scroll infinito, pull-to-refresh y caché offline en Room
-   (si no hay red, se ve lo último guardado).
-2. **Variables**: todos los tipos de variables de Kotlin (`val`, `var`, `const`, numéricos,
-   nullables, `lateinit`, `by lazy`, colecciones, etc.) con el resultado de correr cada ejemplo.
-3. **Scope functions**: `let`, `run`, `with`, `apply`, `also`, `takeIf`/`takeUnless` y una tabla resumen.
+1. **Personajes**: lista con scroll infinito, pull-to-refresh y caché offline en Room.
+2. **Variables**: los tipos de variables de Kotlin, con el resultado de correr cada ejemplo.
+3. **Scope functions**: `let`, `run`, `with`, `apply`, `also`, `takeIf`/`takeUnless`.
+
+## Módulos
+
+| Módulo | Qué es | Application ID |
+|---|---|---|
+| `:core` | Librería compartida: `domain`, `data`, `di`, tema y UI sin estado | — |
+| `:app` | **MVVM** (ViewModel + LiveData). Es la que se sube a Play Store | `com.jcjiron.androidsample` |
+| `:app-mvi` | **MVI** (State + Intent + Reducer, StateFlow) | `com.jcjiron.androidsample.mvi` |
+| `:app-mvp` | **MVP** (Contract + Presenter + View) | `com.jcjiron.androidsample.mvp` |
+
+Las tres apps comparten datos, tema y la UI de la lista (`CharactersContent`, que no tiene estado).
+**Lo único que cambia es quién maneja el estado**, y eso es lo que se compara. Las tres se pueden
+instalar a la vez en el mismo teléfono (*R&M MVVM*, *R&M MVI*, *R&M MVP*).
+
+```
+:app  ─┐
+:app-mvi ─┼──▶ :core  (domain ← data, di, theme, UI sin estado)
+:app-mvp ─┘
+```
+
+## Los tres patrones, lado a lado
+
+| | MVVM (`:app`) | MVI (`:app-mvi`) | MVP (`:app-mvp`) |
+|---|---|---|---|
+| Quién maneja el estado | `CharactersViewModel` | `CharactersViewModel` + `CharactersReducer` | `CharactersPresenter` |
+| Cómo llega el estado a la UI | Varios `LiveData` (uno por dato) | **Un** `StateFlow<CharactersState>` | El Presenter llama `view.showX(...)` |
+| Cómo llegan los eventos | Funciones: `refresh()`, `loadMore()` | **Un** `onIntent(CharactersIntent)` | Funciones: `onRefresh()`, `onLoadMore()` |
+| ¿Conoce a la View? | No | No | **Sí** (referencia a `CharactersContract.View`) |
+| Sobrevive a rotar | Sí (ViewModel de Jetpack) | Sí (ViewModel de Jetpack) | No: vive con la Activity, se engancha con `attachView`/`detachView` |
+| Lo más fácil de probar | El ViewModel | El reducer (función pura) | El Presenter con una View falsa |
+
+Archivos clave:
+
+- MVVM: `app/.../presentation/characters/CharactersViewModel.kt`
+- MVI: `app-mvi/.../presentation/characters/CharactersContract.kt`, `CharactersReducer.kt`, `CharactersViewModel.kt`
+- MVP: `app-mvp/.../presentation/characters/CharactersContract.kt`, `CharactersPresenter.kt`, `CharactersScreen.kt`
 
 ## Stack
 
 | Tema | Elección |
 |---|---|
-| Arquitectura | Clean Architecture en un módulo (`data`, `domain`, `presentation`, `di`) + MVVM |
-| Estado | `CharactersViewModel` con `MutableLiveData` privado + `LiveData` público, observado con `observeAsState` |
 | Red | Retrofit + OkHttp + kotlinx.serialization |
 | Base de datos | Room (fuente única de verdad) |
-| DI | Hilt (`NetworkModule`, `DatabaseModule`, `RepositoryModule`) |
+| DI | Hilt (`NetworkModule`, `DatabaseModule`, `RepositoryModule` en `:core`; `AppConfigModule` en cada app) |
 | UI | Jetpack Compose + Material 3, sin XML de layouts |
 | Imágenes | Coil |
 | Build | Gradle Kotlin DSL + `libs.versions.toml` |
@@ -25,63 +58,77 @@ y sigue las reglas de arquitectura de abajo. Tiene tres pestañas:
 ## Flujo de datos
 
 ```
-CharactersScreen ──observa──▶ CharactersViewModel (LiveData)
-                              │
-                              ▼
-                  CharacterRepository (domain, interfaz)
-                              │
-                  CharacterRepositoryImpl (data)
-                     │                     │
-             RemoteDataSource        LocalDataSource
-               (Retrofit)               (Room)
+UI (Compose) ──▶ ViewModel / Presenter ──▶ CharacterRepository (domain)
+                                                │
+                                   CharacterRepositoryImpl (data)
+                                      │                     │
+                              RemoteDataSource        LocalDataSource
+                                (Retrofit)               (Room)
 ```
 
-1. La UI observa los `LiveData` del ViewModel; nunca sabe de dónde viene el dato.
-   El ViewModel cambia sus `MutableLiveData` privados y expone `LiveData` de solo lectura.
-2. El repositorio expone `observeCharacters()` desde Room.
-3. `fetchPage(n)` baja la página del API y la guarda en Room; Room emite y la UI se actualiza sola.
+1. El repositorio expone `observeCharacters()` desde Room.
+2. `fetchPage(n)` baja la página del API y la guarda en Room; Room emite y la UI se actualiza sola.
+3. Cada app le da a `:core` su `AppConfig` (URL y modo debug) desde su propio `BuildConfig`.
 
 ## Estructura
 
 ```
-app/src/main/java/com/jcjiron/androidsample/
-├── SampleApp.kt              # @HiltAndroidApp
-├── data/
-│   ├── local/                # CharacterEntity, CharacterDao, AppDatabase, LocalDataSource
-│   ├── remote/               # RickAndMortyApi, DTOs, RemoteDataSource
-│   └── repository/           # CharacterRepositoryImpl
-├── domain/
-│   ├── model/                # Character, CharacterStatus
-│   └── repository/           # CharacterRepository
-├── presentation/
-│   ├── theme/                # Color.kt, Type.kt, Shape.kt, Theme.kt
-│   ├── main/                 # MainActivity, MainScreen (pestañas)
-│   ├── characters/           # CharactersViewModel (LiveData), CharactersScreen
-│   └── kotlinbasics/         # VariableExamples, ScopeFunctionExamples, KotlinExamplesScreen
-└── di/                       # NetworkModule, DatabaseModule, RepositoryModule
+core/src/main/java/com/jcjiron/androidsample/core/
+├── AppConfig.kt
+├── data/            # local (Room), remote (Retrofit), repository
+├── domain/          # model, repository (interfaces)
+├── di/              # NetworkModule, DatabaseModule, RepositoryModule
+└── presentation/
+    ├── theme/       # Color.kt, Type.kt, Shape.kt, Theme.kt
+    ├── characters/  # CharactersContent (UI sin estado)
+    ├── kotlinbasics/
+    └── main/        # MainScaffold (pestañas)
+
+app/       → presentation/characters/CharactersViewModel.kt (MVVM)
+app-mvi/   → presentation/characters/CharactersContract.kt, CharactersReducer.kt, CharactersViewModel.kt
+app-mvp/   → presentation/characters/CharactersContract.kt, CharactersPresenter.kt; di/PresenterModule.kt
+signing/   → llaves de firma (no van en git)
 ```
+
+## Publicar en Play Store
+
+### Firma
+
+Las llaves van en `signing/` y `app/build.gradle.kts` las carga desde ahí. El paso a paso para
+generarlas en Android Studio está en [`signing/README.md`](signing/README.md). En resumen:
+
+1. Generar `signing/release.jks` (alias `upload`).
+2. Copiar `signing/keystore.properties.example` → `signing/keystore.properties` y poner las contraseñas.
+3. `./gradlew :app:bundleRelease` → `app/build/outputs/bundle/release/app-release.aab`.
+
+Sin llaves el proyecto sigue compilando: el release se firma con la llave debug y Gradle avisa.
+
+### R8 / ProGuard
+
+- `release` tiene `isMinifyEnabled = true` e `isShrinkResources = true`.
+- Las reglas de Retrofit, kotlinx.serialization y los modelos (`-keep` de los DTOs en
+  `data/remote` y de los `*Entity` de Room) están en `core/consumer-rules.pro`. Viajan solas a
+  cada app que usa `:core`.
+- `app/proguard-rules.pro` conserva números de línea para los stack traces. Subir
+  `app/build/outputs/mapping/release/mapping.txt` a Play Console para desofuscar crashes.
+- **Probar el release en un teléfono antes de subirlo**: `./gradlew :app:installRelease`.
 
 ## Build types y flavors
 
-- `debug`: `applicationIdSuffix = ".debug"`, logging HTTP completo. Se puede instalar junto al release.
-- `release`: sin sufijo, firmado con la llave debug solo para el demo.
+- `debug`: `applicationIdSuffix = ".debug"`, logging HTTP completo.
+- `release`: sin sufijo, R8 activado.
 - Cada build type define `BuildConfig.BASE_URL` con `buildConfigField` (`buildConfig = true`).
 - Los product flavors (`dev` / `prod`) están declarados y comentados en `app/build.gradle.kts`.
-
-## Tema
-
-`LightColors` y `DarkColors` viven en `presentation/theme/Color.kt`. En `Theme.kt` se elige el
-esquema en una línea; tipografía (`AppTypography`), shapes (`AppShapes`) y espaciados
-(`AppTheme.dimens`) salen del tema, así que ningún composable hardcodea estilos.
-`CharactersScreen.kt` y `KotlinExamplesScreen.kt` traen previews en claro y oscuro.
 
 ## Correr
 
 ```bash
-./gradlew installDebug        # o abrir en Android Studio y darle Run
-./gradlew assembleRelease
+./gradlew :app:installDebug       # MVVM
+./gradlew :app-mvi:installDebug   # MVI
+./gradlew :app-mvp:installDebug   # MVP
 ```
 
+En Android Studio, elegir el módulo en el selector de configuración junto al botón Run.
 Requiere JDK 17 y Android SDK 35.
 
 ---
@@ -93,6 +140,7 @@ Así construyo aplicaciones Android. Una regla, una línea.
 ### Arquitectura
 
 - Clean Architecture en un solo módulo, con paquetes por capa: `data`, `domain`, `presentation`, `di`.
+  *(Este demo es multimódulo a propósito para comparar arquitecturas; `:core` conserva los mismos paquetes.)*
 - Las dependencias apuntan hacia adentro: `presentation` → `domain` ← `data`; `domain` no conoce Android.
 - MVVM con ViewModels de Jetpack; nada de MVP ni listeners actualizados a mano.
 - El ViewModel expone estado con `StateFlow` y la UI solo lo observa.

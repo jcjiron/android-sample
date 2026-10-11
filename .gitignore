@@ -9,3 +9,8 @@
 .externalNativeBuild/
 .cxx/
 .kotlin/
+
+# Llaves de firma: solo en local / secrets de CI (ver signing/README.md)
+/signing/*.jks
+/signing/*.keystore
+/signing/keystore.properties

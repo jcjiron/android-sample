@@ -15,9 +15,24 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
-      - name: Build debug y release
-        run: ./gradlew assembleDebug assembleRelease --stacktrace
+      - name: Build debug y release (R8) de las tres apps + AAB de :app
+        run: ./gradlew assembleDebug assembleRelease :app:bundleRelease --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: apks
-          path: app/build/outputs/apk/**/*.apk
+          path: |
+            */build/outputs/apk/**/*.apk
+            app/build/outputs/bundle/release/*.aab
+      - name: Probar la firma de release con un keystore temporal
+        env:
+          RELEASE_STORE_FILE: ci-release.jks
+          RELEASE_STORE_PASSWORD: ci-password
+          RELEASE_KEY_ALIAS: upload
+          RELEASE_KEY_PASSWORD: ci-password
+        run: |
+          keytool -genkeypair -noprompt -keystore signing/ci-release.jks -alias upload \
+            -keyalg RSA -keysize 2048 -validity 1 \
+            -storepass ci-password -keypass ci-password -dname "CN=CI Signing Test"
+          ./gradlew :app:assembleRelease --stacktrace
+          BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          "$BT/apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk | tee /dev/stderr | grep -q "CN=CI Signing Test"
