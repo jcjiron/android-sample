@@ -1,18 +1,19 @@
 package com.jcjiron.androidsample.presentation.characters
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.jcjiron.androidsample.core.R
 import com.jcjiron.androidsample.core.domain.model.Character
 import com.jcjiron.androidsample.core.domain.repository.CharacterRepository
+import com.jcjiron.androidsample.ui.resources.Res
+import com.jcjiron.androidsample.ui.resources.error_network
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.jetbrains.compose.resources.StringResource
 
 /**
  * ViewModel de la pantalla de personajes.
@@ -34,8 +35,8 @@ class CharactersViewModel @Inject constructor(
     private val _isLoadingMore = MutableLiveData(false)
     val isLoadingMore: LiveData<Boolean> = _isLoadingMore
 
-    private val _errorMessage = MutableLiveData<Int?>(null)
-    val errorMessage: LiveData<Int?> = _errorMessage
+    private val _errorMessage = MutableLiveData<StringResource?>(null)
+    val errorMessage: LiveData<StringResource?> = _errorMessage
 
     private var loadJob: Job? = null
     private var nextPage = FIRST_PAGE
@@ -55,7 +56,7 @@ class CharactersViewModel @Inject constructor(
                     nextPage = FIRST_PAGE + 1
                     endReached = !hasMore
                 }
-                .onFailure { showError(R.string.error_network) }
+                .onFailure { showError(Res.string.error_network) }
             _isRefreshing.value = false
         }
     }
@@ -69,7 +70,7 @@ class CharactersViewModel @Inject constructor(
                     nextPage++
                     endReached = !hasMore
                 }
-                .onFailure { showError(R.string.error_network) }
+                .onFailure { showError(Res.string.error_network) }
             _isLoadingMore.value = false
         }
     }
@@ -78,7 +79,7 @@ class CharactersViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
-    private fun showError(@StringRes message: Int) {
+    private fun showError(message: StringResource) {
         _errorMessage.value = message
     }
 

@@ -1,0 +1,34 @@
+# Proyecto de Xcode descrito con XcodeGen (https://github.com/yonaskolb/XcodeGen).
+# Generar el .xcodeproj:  brew install xcodegen && cd iosApp && xcodegen
+name: iosApp
+options:
+  bundleIdPrefix: com.jcjiron.androidsample
+  deploymentTarget:
+    iOS: "15.0"
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    sources: [iosApp]
+    info:
+      path: iosApp/Info.plist
+      properties:
+        CFBundleDisplayName: "R&M KMP"
+        UILaunchScreen: {}
+        # Compose Multiplatform lo pide para animar a 120 Hz en iPhone Pro.
+        CADisableMinimumFrameDurationOnPhone: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jcjiron.androidsample.kmp
+        SWIFT_VERSION: "5.0"
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../app-kmp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+        OTHER_LDFLAGS: ["$(inherited)", "-framework", "ComposeApp"]
+    preBuildScripts:
+      # Compila el código Kotlin (app-kmp) como framework antes de compilar Swift.
+      - name: Compile Kotlin Framework
+        basedOnDependencyAnalysis: false
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :app-kmp:embedAndSignAppleFrameworkForXcode
+    scheme: {}

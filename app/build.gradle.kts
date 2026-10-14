@@ -129,7 +129,9 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":data-android"))
+    implementation(project(":ui"))
+    implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
