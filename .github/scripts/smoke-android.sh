@@ -5,6 +5,12 @@ set -uo pipefail
 mkdir -p smoke
 status=0
 
+# El emulador termina de arrancar antes de tener internet; esperar a que la API responda.
+for _ in $(seq 1 60); do
+  adb shell ping -c 1 -W 2 rickandmortyapi.com >/dev/null 2>&1 && break
+  sleep 2
+done
+
 check() {
   local pkg=$1 apk=$2
   adb install -r "$apk" >/dev/null
