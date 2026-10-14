@@ -1,7 +1,7 @@
 package com.jcjiron.androidsample.mvp.presentation.characters
 
-import androidx.annotation.StringRes
 import com.jcjiron.androidsample.core.domain.model.Character
+import org.jetbrains.compose.resources.StringResource
 
 /**
  * MVP = Model-View-Presenter.
@@ -17,7 +17,7 @@ interface CharactersContract {
         fun showCharacters(characters: List<Character>)
         fun showRefreshing(isRefreshing: Boolean)
         fun showLoadingMore(isLoadingMore: Boolean)
-        fun showError(@StringRes message: Int)
+        fun showError(message: StringResource)
     }
 
     interface Presenter {

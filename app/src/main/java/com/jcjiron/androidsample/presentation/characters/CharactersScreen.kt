@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.jcjiron.androidsample.core.presentation.characters.CharactersContent
+import com.jcjiron.androidsample.ui.characters.CharactersContent
 
 /** MVVM: la pantalla observa los LiveData del ViewModel y le avisa de los eventos. */
 @Composable
