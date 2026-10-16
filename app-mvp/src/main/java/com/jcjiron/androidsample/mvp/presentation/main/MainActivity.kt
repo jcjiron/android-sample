@@ -4,8 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.jcjiron.androidsample.ui.main.MainScaffold
-import com.jcjiron.androidsample.ui.theme.AndroidSampleTheme
+import com.jcjiron.androidsample.core.presentation.main.MainScaffold
+import com.jcjiron.androidsample.core.presentation.theme.AndroidSampleTheme
 import com.jcjiron.androidsample.mvp.presentation.characters.CharactersContract
 import com.jcjiron.androidsample.mvp.presentation.characters.CharactersScreen
 import dagger.hilt.android.AndroidEntryPoint

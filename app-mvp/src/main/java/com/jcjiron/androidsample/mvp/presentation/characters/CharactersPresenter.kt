@@ -1,14 +1,13 @@
 package com.jcjiron.androidsample.mvp.presentation.characters
 
+import com.jcjiron.androidsample.core.R
 import com.jcjiron.androidsample.core.domain.repository.CharacterRepository
-import com.jcjiron.androidsample.ui.resources.Res
-import com.jcjiron.androidsample.ui.resources.error_network
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * El Presenter NO es un ViewModel de Jetpack: es una clase normal.
@@ -53,7 +52,7 @@ class CharactersPresenter @Inject constructor(
                     nextPage = FIRST_PAGE + 1
                     endReached = !hasMore
                 }
-                .onFailure { view?.showError(Res.string.error_network) }
+                .onFailure { view?.showError(R.string.error_network) }
             view?.showRefreshing(false)
         }
     }
@@ -67,7 +66,7 @@ class CharactersPresenter @Inject constructor(
                     nextPage++
                     endReached = !hasMore
                 }
-                .onFailure { view?.showError(Res.string.error_network) }
+                .onFailure { view?.showError(R.string.error_network) }
             view?.showLoadingMore(false)
         }
     }

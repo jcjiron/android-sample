@@ -1,7 +1,6 @@
 package com.jcjiron.androidsample.mvi.presentation.characters
 
-import com.jcjiron.androidsample.ui.resources.Res
-import com.jcjiron.androidsample.ui.resources.error_network
+import com.jcjiron.androidsample.core.R
 
 /**
  * Función pura: mismo State + mismo Result = mismo State nuevo. Sin coroutines, sin red, sin Android.
@@ -26,7 +25,7 @@ object CharactersReducer {
         CharactersResult.LoadFailed -> state.copy(
             isRefreshing = false,
             isLoadingMore = false,
-            errorMessage = Res.string.error_network,
+            errorMessage = R.string.error_network,
         )
 
         CharactersResult.ErrorCleared -> state.copy(errorMessage = null)

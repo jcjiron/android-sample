@@ -58,9 +58,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":data-android"))
-    implementation(project(":ui"))
-    implementation(platform(libs.androidx.compose.bom))
+    implementation(project(":core"))
 
     implementation(libs.androidx.activity.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)

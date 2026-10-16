@@ -1,7 +1,7 @@
 package com.jcjiron.androidsample.mvi.presentation.characters
 
+import androidx.annotation.StringRes
 import com.jcjiron.androidsample.core.domain.model.Character
-import org.jetbrains.compose.resources.StringResource
 
 /**
  * MVI = Model-View-Intent.
@@ -17,7 +17,7 @@ data class CharactersState(
     val characters: List<Character> = emptyList(),
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
-    val errorMessage: StringResource? = null,
+    @StringRes val errorMessage: Int? = null,
     val nextPage: Int = 1,
     val endReached: Boolean = false,
 )

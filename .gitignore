@@ -14,10 +14,3 @@
 /signing/*.jks
 /signing/*.keystore
 /signing/keystore.properties
-
-# iOS: el .xcodeproj se genera con XcodeGen desde iosApp/project.yml
-/iosApp/iosApp.xcodeproj/
-/iosApp/iosApp/Info.plist
-xcuserdata/
-DerivedData/
-*/build/

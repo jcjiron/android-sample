@@ -1,5 +1,6 @@
 package com.jcjiron.androidsample.mvp.presentation.characters
 
+import androidx.annotation.StringRes
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -9,8 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.jcjiron.androidsample.core.domain.model.Character
-import com.jcjiron.androidsample.ui.characters.CharactersContent
-import org.jetbrains.compose.resources.StringResource
+import com.jcjiron.androidsample.core.presentation.characters.CharactersContent
 
 /**
  * Implementación de la View del contrato para Compose.
@@ -24,7 +24,7 @@ class CharactersComposeView : CharactersContract.View {
         private set
     var isLoadingMore by mutableStateOf(false)
         private set
-    var errorMessage by mutableStateOf<StringResource?>(null)
+    var errorMessage by mutableStateOf<Int?>(null)
         private set
 
     override fun showCharacters(characters: List<Character>) {
@@ -39,7 +39,7 @@ class CharactersComposeView : CharactersContract.View {
         this.isLoadingMore = isLoadingMore
     }
 
-    override fun showError(message: StringResource) {
+    override fun showError(@StringRes message: Int) {
         errorMessage = message
     }
 

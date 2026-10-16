@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.jcjiron.androidsample.ui.characters.CharactersContent
+import com.jcjiron.androidsample.core.presentation.characters.CharactersContent
 
 /** MVI: la pantalla pinta UN state y todo lo que hace el usuario se manda como Intent. */
 @Composable
