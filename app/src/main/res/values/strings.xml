@@ -1,3 +1,29 @@
 <resources>
     <string name="app_name">R&amp;M MVVM</string>
+
+    <!-- Activity de detalle -->
+    <string name="back">Regresar</string>
+    <string name="share">Compartir</string>
+    <string name="share_chooser_title">Compartir personaje</string>
+    <string name="share_text">%1$s (%2$s), visto por última vez en %3$s. %4$s</string>
+    <string name="detail_species">Especie</string>
+    <string name="detail_gender">Género</string>
+    <string name="detail_origin">Origen</string>
+    <string name="detail_location">Última ubicación</string>
+
+    <!-- Service -->
+    <string name="download_all_action">Descargar todo</string>
+    <string name="download_channel_name">Descargas</string>
+    <string name="download_notification_title">Descargando personajes para usar sin internet</string>
+    <string name="download_notification_starting">Iniciando…</string>
+    <string name="download_notification_progress">Página %1$d de %2$d</string>
+
+    <!-- Broadcasts -->
+    <string name="download_finished">Descarga completa: %1$d personajes guardados</string>
+    <string name="download_failed">No se pudo completar la descarga</string>
+    <string name="airplane_mode_banner">Modo avión activado: mostrando datos guardados</string>
+
+    <!-- ContentProvider -->
+    <string name="permission_read_characters_label">Leer personajes de R&amp;M</string>
+    <string name="permission_read_characters_description">Permite leer los personajes guardados sin conexión.</string>
 </resources>

@@ -2,6 +2,7 @@ package com.jcjiron.androidsample.core.presentation.main
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
@@ -42,12 +43,14 @@ enum class MainTab(@StringRes val title: Int, val icon: ImageVector) {
  * Esqueleto común de las tres apps: barra superior, pestañas y snackbar.
  *
  * @param architecture nombre del patrón ("MVVM", "MVI", "MVP") que se muestra en la barra.
+ * @param actions botones opcionales a la derecha de la barra superior.
  * @param charactersTab la pestaña de personajes; cada app la arma con su propio patrón.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScaffold(
     architecture: String,
+    actions: @Composable RowScope.() -> Unit = {},
     charactersTab: @Composable (snackbarHostState: SnackbarHostState, modifier: Modifier) -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.CHARACTERS) }
@@ -65,9 +68,11 @@ fun MainScaffold(
                         )
                     }
                 },
+                actions = actions,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
             )
         },

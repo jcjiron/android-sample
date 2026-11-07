@@ -90,6 +90,36 @@ app-mvp/   → presentation/characters/CharactersContract.kt, CharactersPresente
 signing/   → llaves de firma (no van en git)
 ```
 
+## Los 4 componentes de Android (en `:app`)
+
+| Componente | Archivo | Qué hace en el demo |
+|---|---|---|
+| **Activity** | `presentation/detail/CharacterDetailActivity.kt` | Al tocar una card se abre el detalle con un **Intent explícito** (lleva el `id`). El botón *Compartir* usa un **Intent implícito** (`ACTION_SEND`) y Android pregunta con qué app |
+| **Service** | `components/service/DownloadAllService.kt` | *Foreground service* de tipo `dataSync`: el botón **Descargar todo** baja todas las páginas a Room para usar la app sin internet. El avance se ve en una notificación y sigue aunque salgas de la app |
+| **BroadcastReceiver** | `components/receiver/BroadcastReceivers.kt`, `DownloadEvents.kt` | **Del sistema:** al prender el modo avión aparece el aviso "mostrando datos guardados". **Propio:** el Service manda `DOWNLOAD_FINISHED` al terminar y la pantalla muestra "Descarga completa: N personajes" |
+| **ContentProvider** | `components/provider/CharactersProvider.kt`, `CharactersContract.kt` | Expone la caché de Room en `content://<applicationId>.provider/characters`. **Solo lectura y cerrado** con un permiso `signature`: solo lo leen apps firmadas con la misma llave. La app misma lo usa para contar los personajes al terminar la descarga |
+
+Para enseñarlo:
+
+```bash
+# Modo avión desde la terminal (o desde los ajustes rápidos del teléfono)
+adb shell cmd connectivity airplane-mode enable
+adb shell cmd connectivity airplane-mode disable
+
+# El ContentProvider está cerrado: adb no tiene la firma de la app
+adb shell content query --uri content://com.jcjiron.androidsample.provider/characters
+# → SecurityException: Permission Denial ... requires com.jcjiron.androidsample.permission.READ_CHARACTERS
+```
+
+Otra app de la empresa, firmada con la misma llave, lo lee así:
+
+```xml
+<uses-permission android:name="com.jcjiron.androidsample.permission.READ_CHARACTERS" />
+```
+```kotlin
+contentResolver.query(Uri.parse("content://com.jcjiron.androidsample.provider/characters"), null, null, null, null)
+```
+
 ## Publicar en Play Store
 
 ### Firma
@@ -102,6 +132,14 @@ generarlas en Android Studio está en [`signing/README.md`](signing/README.md). 
 3. `./gradlew :app:bundleRelease` → `app/build/outputs/bundle/release/app-release.aab`.
 
 Sin llaves el proyecto sigue compilando: el release se firma con la llave debug y Gradle avisa.
+
+### Foreground service (`dataSync`)
+
+`DownloadAllService` es un foreground service de tipo `dataSync`. Al subir la app, Play Console pide
+declararlo en **App content → Foreground service permissions**: elegir *Data sync*, explicar para
+qué se usa ("descargar el catálogo de personajes para usarlo sin conexión") y adjuntar un video
+corto mostrando el botón *Descargar todo* y la notificación de progreso. En Android 15 este tipo de
+servicio tiene un límite de 6 horas al día; esta descarga tarda segundos.
 
 ### R8 / ProGuard
 

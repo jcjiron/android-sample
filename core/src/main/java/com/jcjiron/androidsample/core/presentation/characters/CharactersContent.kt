@@ -62,6 +62,7 @@ fun CharactersContent(
     onLoadMore: () -> Unit,
     onErrorShown: () -> Unit,
     modifier: Modifier = Modifier,
+    onCharacterClick: (Character) -> Unit = {},
 ) {
     val errorText = errorMessage?.let { stringResource(it) }
     val retryLabel = stringResource(R.string.retry)
@@ -90,6 +91,7 @@ fun CharactersContent(
                 characters = characters,
                 isLoadingMore = isLoadingMore,
                 onLoadMore = onLoadMore,
+                onCharacterClick = onCharacterClick,
             )
         }
     }
@@ -100,6 +102,7 @@ private fun CharacterList(
     characters: List<Character>,
     isLoadingMore: Boolean,
     onLoadMore: () -> Unit,
+    onCharacterClick: (Character) -> Unit,
 ) {
     val listState = rememberLazyListState()
     val shouldLoadMore by remember {
@@ -122,7 +125,7 @@ private fun CharacterList(
         verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
     ) {
         items(characters, key = { it.id }) { character ->
-            CharacterCard(character)
+            CharacterCard(character, onClick = { onCharacterClick(character) })
         }
         if (isLoadingMore) {
             item(key = "loading") {
@@ -140,9 +143,10 @@ private fun CharacterList(
 }
 
 @Composable
-private fun CharacterCard(character: Character) {
+private fun CharacterCard(character: Character, onClick: () -> Unit) {
     val dimens = AppTheme.dimens
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
@@ -193,8 +197,9 @@ private fun CharacterCard(character: Character) {
     }
 }
 
+/** Etiqueta de color con el estado del personaje. Pública para reutilizarla en el detalle. */
 @Composable
-private fun StatusBadge(status: CharacterStatus) {
+fun StatusBadge(status: CharacterStatus) {
     val colors = MaterialTheme.colorScheme
     val (container, content, label) = when (status) {
         CharacterStatus.ALIVE -> Triple(colors.primaryContainer, colors.onPrimaryContainer, R.string.status_alive)

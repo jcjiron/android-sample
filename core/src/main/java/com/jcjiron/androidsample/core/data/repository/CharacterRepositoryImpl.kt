@@ -19,6 +19,9 @@ class CharacterRepositoryImpl @Inject constructor(
     override fun observeCharacters(): Flow<List<Character>> =
         localDataSource.observeCharacters().map { entities -> entities.map { it.toDomain() } }
 
+    override fun observeCharacter(id: Int): Flow<Character?> =
+        localDataSource.observeCharacter(id).map { it?.toDomain() }
+
     override suspend fun fetchPage(page: Int): Result<Boolean> = try {
         val response = remoteDataSource.getCharacters(page)
         val entities = response.results.map { it.toEntity() }
@@ -28,6 +31,28 @@ class CharacterRepositoryImpl @Inject constructor(
             localDataSource.saveCharacters(entities)
         }
         Result.success(response.info.next != null)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun downloadAll(
+        onProgress: suspend (page: Int, totalPages: Int) -> Unit,
+    ): Result<Int> = try {
+        var page = FIRST_PAGE
+        do {
+            val response = remoteDataSource.getCharacters(page)
+            val entities = response.results.map { it.toEntity() }
+            if (page == FIRST_PAGE) {
+                localDataSource.replaceCharacters(entities)
+            } else {
+                localDataSource.saveCharacters(entities)
+            }
+            onProgress(page, response.info.pages)
+            page++
+        } while (response.info.next != null)
+        Result.success(localDataSource.count())
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {

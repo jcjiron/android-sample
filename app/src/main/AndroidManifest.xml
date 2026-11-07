@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Service: foreground service de tipo dataSync (Play Console pide declararlo). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Android 13+: permiso para mostrar la notificación de progreso. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+        ContentProvider cerrado: solo pueden leerlo apps firmadas con la MISMA llave que esta
+        (protectionLevel="signature"). Cualquier otra app recibe "Permission Denial".
+    -->
+    <permission
+        android:name="${applicationId}.permission.READ_CHARACTERS"
+        android:description="@string/permission_read_characters_description"
+        android:label="@string/permission_read_characters_label"
+        android:protectionLevel="signature" />
+
     <application
         android:name=".SampleApp"
         android:allowBackup="true"
@@ -8,6 +24,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+        <!-- Activity principal (la que abre el launcher). -->
         <activity
             android:name=".presentation.main.MainActivity"
             android:exported="true">
@@ -16,6 +34,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Activity de detalle: solo se abre desde esta app (Intent explícito). -->
+        <activity
+            android:name=".presentation.detail.CharacterDetailActivity"
+            android:exported="false" />
+
+        <!-- Service: descarga todo para usar la app offline. -->
+        <service
+            android:name=".components.service.DownloadAllService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- ContentProvider: solo lectura y protegido por el permiso signature de arriba. -->
+        <provider
+            android:name=".components.provider.CharactersProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="true"
+            android:readPermission="${applicationId}.permission.READ_CHARACTERS"
+            android:writePermission="${applicationId}.permission.READ_CHARACTERS" />
     </application>
 
 </manifest>
