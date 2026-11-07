@@ -80,8 +80,18 @@ adb shell cmd connectivity airplane-mode disable
 for _ in $(seq 1 30); do adb shell ping -c 1 -W 2 rickandmortyapi.com >/dev/null 2>&1 && break; sleep 2; done
 
 # ContentProvider cerrado: alguien sin la firma (adb) recibe Permission Denial.
-adb shell content query --uri content://$APP.provider/characters 2>&1 | tee smoke/provider.txt | grep -q "Permission Denial"
-check "ContentProvider cerrado" $?
+# Cerrado = no regresa ningún renglón Y Android registró el "Permission Denial".
+adb logcat -c
+adb shell content query --uri content://$APP.provider/characters > smoke/provider.txt 2>&1
+echo "  content query → $(head -c 300 smoke/provider.txt | tr '\n' ' ')"
+denied=1
+if ! grep -q "Row:" smoke/provider.txt; then
+  if grep -q "Permission Denial" smoke/provider.txt ||
+     adb logcat -d | grep -q "Permission Denial: opening provider .*CharactersProvider"; then
+    denied=0
+  fi
+fi
+check "ContentProvider cerrado" $denied
 
 
 if [ $status -ne 0 ]; then
