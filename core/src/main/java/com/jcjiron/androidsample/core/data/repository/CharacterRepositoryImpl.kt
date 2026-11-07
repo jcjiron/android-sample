@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class CharacterRepositoryImpl @Inject constructor(
@@ -63,7 +64,10 @@ class CharacterRepositoryImpl @Inject constructor(
         Result.failure(e)
     }
 
-    /** Reintenta una página hasta [MAX_ATTEMPTS] veces, esperando 1 s, 2 s… entre intentos. */
+    /**
+     * Reintenta una página hasta [MAX_ATTEMPTS] veces. Si el servidor responde 429 (demasiadas
+     * peticiones) se espera lo que pida en `Retry-After`; si no lo dice, 2 s, 4 s, 8 s…
+     */
     private suspend fun fetchWithRetry(page: Int): CharacterPageDto {
         var attempt = 1
         while (true) {
@@ -73,16 +77,25 @@ class CharacterRepositoryImpl @Inject constructor(
                 throw e
             } catch (e: Exception) {
                 if (attempt >= MAX_ATTEMPTS) throw e
-                delay(RETRY_DELAY_MILLIS * attempt)
+                val backoff = RETRY_BASE_DELAY_MILLIS shl (attempt - 1)
+                delay(retryAfterMillis(e) ?: backoff)
                 attempt++
             }
         }
     }
 
+    private fun retryAfterMillis(error: Exception): Long? {
+        if (error !is HttpException || error.code() != HTTP_TOO_MANY_REQUESTS) return null
+        val seconds = error.response()?.headers()?.get("Retry-After")?.toLongOrNull() ?: return null
+        return (seconds * 1_000).coerceAtMost(MAX_RETRY_AFTER_MILLIS)
+    }
+
     companion object {
         const val FIRST_PAGE = 1
-        private const val MAX_ATTEMPTS = 3
-        private const val RETRY_DELAY_MILLIS = 1_000L
-        private const val PAGE_DELAY_MILLIS = 150L
+        private const val MAX_ATTEMPTS = 5
+        private const val RETRY_BASE_DELAY_MILLIS = 2_000L
+        private const val MAX_RETRY_AFTER_MILLIS = 30_000L
+        private const val PAGE_DELAY_MILLIS = 300L
+        private const val HTTP_TOO_MANY_REQUESTS = 429
     }
 }
