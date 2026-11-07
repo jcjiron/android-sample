@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -55,7 +56,7 @@ fun CharactersScreen(
             } else {
                 context.getString(R.string.download_failed)
             }
-            snackbarHostState.showSnackbar(message)
+            snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Long)
         }
     }
 

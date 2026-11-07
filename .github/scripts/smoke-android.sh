@@ -56,9 +56,22 @@ launch $APP
 wait_text "Rick Sanchez"; check "app lista" $?
 
 # Activity: tocar la card abre el detalle (Intent explícito).
-tap_text "Rick Sanchez" && wait_text "Compartir" 15; check "Activity detalle" $?
+# (Se busca "Especie": en la pantalla chica del emulador "Compartir" queda fuera de la vista.)
+tap_text "Rick Sanchez" && wait_text "Especie" 15; check "Activity detalle" $?
 adb shell input keyevent KEYCODE_BACK
 wait_text "Descargar todo" 10
+
+# Service + broadcast propio: "Descargar todo" baja todas las páginas y avisa al terminar.
+# (Antes del modo avión, para que la red no esté recién reconectándose.)
+tap_text "Descargar todo"
+result=1
+for _ in $(seq 1 90); do
+  ui=$(dump)
+  if echo "$ui" | grep -q "Descarga completa"; then result=0; break; fi
+  if echo "$ui" | grep -q "No se pudo completar la descarga"; then echo "  el Service avisó un error de descarga"; break; fi
+  sleep 1
+done
+check "Service descarga + broadcast" $result
 
 # BroadcastReceiver del sistema: modo avión muestra el aviso.
 adb shell cmd connectivity airplane-mode enable
@@ -70,10 +83,8 @@ for _ in $(seq 1 30); do adb shell ping -c 1 -W 2 rickandmortyapi.com >/dev/null
 adb shell content query --uri content://$APP.provider/characters 2>&1 | tee smoke/provider.txt | grep -q "Permission Denial"
 check "ContentProvider cerrado" $?
 
-# Service + broadcast propio: "Descargar todo" baja todas las páginas y avisa al terminar.
-tap_text "Descargar todo" && wait_text "Descarga completa" 90; check "Service descarga + broadcast" $?
 
 if [ $status -ne 0 ]; then
-  adb logcat -d | grep -A40 "FATAL EXCEPTION" || adb logcat -d | tail -80
+  adb logcat -d | grep -A40 "FATAL EXCEPTION" || adb logcat -d | grep -iE "androidsample|ForegroundService|okhttp|Exception" | tail -80
 fi
 exit $status
