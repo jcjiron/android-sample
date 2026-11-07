@@ -2,11 +2,13 @@ package com.jcjiron.androidsample.core.data.repository
 
 import com.jcjiron.androidsample.core.data.local.LocalDataSource
 import com.jcjiron.androidsample.core.data.local.toDomain
+import com.jcjiron.androidsample.core.data.remote.CharacterPageDto
 import com.jcjiron.androidsample.core.data.remote.RemoteDataSource
 import com.jcjiron.androidsample.core.data.remote.toEntity
 import com.jcjiron.androidsample.core.domain.model.Character
 import com.jcjiron.androidsample.core.domain.repository.CharacterRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -42,7 +44,7 @@ class CharacterRepositoryImpl @Inject constructor(
     ): Result<Int> = try {
         var page = FIRST_PAGE
         do {
-            val response = remoteDataSource.getCharacters(page)
+            val response = fetchWithRetry(page)
             val entities = response.results.map { it.toEntity() }
             if (page == FIRST_PAGE) {
                 localDataSource.replaceCharacters(entities)
@@ -51,6 +53,8 @@ class CharacterRepositoryImpl @Inject constructor(
             }
             onProgress(page, response.info.pages)
             page++
+            // Pausa corta entre páginas para no saturar una API pública y gratuita.
+            if (response.info.next != null) delay(PAGE_DELAY_MILLIS)
         } while (response.info.next != null)
         Result.success(localDataSource.count())
     } catch (e: CancellationException) {
@@ -59,7 +63,26 @@ class CharacterRepositoryImpl @Inject constructor(
         Result.failure(e)
     }
 
+    /** Reintenta una página hasta [MAX_ATTEMPTS] veces, esperando 1 s, 2 s… entre intentos. */
+    private suspend fun fetchWithRetry(page: Int): CharacterPageDto {
+        var attempt = 1
+        while (true) {
+            try {
+                return remoteDataSource.getCharacters(page)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (attempt >= MAX_ATTEMPTS) throw e
+                delay(RETRY_DELAY_MILLIS * attempt)
+                attempt++
+            }
+        }
+    }
+
     companion object {
         const val FIRST_PAGE = 1
+        private const val MAX_ATTEMPTS = 3
+        private const val RETRY_DELAY_MILLIS = 1_000L
+        private const val PAGE_DELAY_MILLIS = 150L
     }
 }

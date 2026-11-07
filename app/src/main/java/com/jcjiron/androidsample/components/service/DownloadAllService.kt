@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
@@ -62,6 +63,7 @@ class DownloadAllService : Service() {
             val result = repository.downloadAll { page, totalPages ->
                 showNotification(progressNotification(page, totalPages))
             }
+            result.exceptionOrNull()?.let { Log.w(TAG, "La descarga falló", it) }
             sendBroadcast(DownloadEvents.finishedIntent(this@DownloadAllService, result.isSuccess))
             ServiceCompat.stopForeground(this@DownloadAllService, ServiceCompat.STOP_FOREGROUND_REMOVE)
             stopSelf()
@@ -111,6 +113,7 @@ class DownloadAllService : Service() {
     }
 
     companion object {
+        private const val TAG = "DownloadAllService"
         private const val CHANNEL_ID = "download_all"
         private const val NOTIFICATION_ID = 1
 

@@ -85,6 +85,9 @@ check "ContentProvider cerrado" $?
 
 
 if [ $status -ne 0 ]; then
+  echo "--- Log del Service ---"
+  adb logcat -d -s DownloadAllService:* | tail -40
+  echo "--- Crashes / errores ---"
   adb logcat -d | grep -A40 "FATAL EXCEPTION" || adb logcat -d | grep -iE "androidsample|ForegroundService|okhttp|Exception" | tail -80
 fi
 exit $status
